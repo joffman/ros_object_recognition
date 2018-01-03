@@ -1,0 +1,78 @@
+!!python/object/new:dynamic_reconfigure.encoding.Config
+dictitems:
+  cross_check: true
+  extended: false
+  filename: /home/janosch/tb_ws/src/object_detection_2d_nodes/params/feature_ros_book_selection.yaml
+  groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+    dictitems:
+      groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+        dictitems:
+          matcher: !!python/object/new:dynamic_reconfigure.encoding.Config
+            dictitems:
+              cross_check: true
+              groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+                state: []
+              id: 2
+              name: matcher
+              norm_type: 4
+              parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+                state: []
+              parent: 0
+              state: true
+              type: ''
+            state: []
+          surf: !!python/object/new:dynamic_reconfigure.encoding.Config
+            dictitems:
+              extended: false
+              groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+                state: []
+              hessian_threshold: 500.0
+              id: 1
+              name: surf
+              num_octave_layers: 3
+              num_octaves: 4
+              parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+                state: []
+              parent: 0
+              state: true
+              type: ''
+              upright: false
+            state: []
+          target_selection: !!python/object/new:dynamic_reconfigure.encoding.Config
+            dictitems:
+              filename: /home/janosch/tb_ws/src/object_detection_2d_nodes/params/feature_ros_book_selection.yaml
+              groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+                state: []
+              id: 3
+              load_selection: true
+              name: target_selection
+              parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+                state: []
+              parent: 0
+              save_selection: false
+              state: true
+              type: ''
+            state: []
+        state: []
+      id: 0
+      match_distance_threshold: 48.95100000000001
+      name: Default
+      object_name: ros_book
+      parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+        state: []
+      parent: 0
+      ransac_reproj_threshold: 4.9750000000000005
+      state: true
+      type: ''
+    state: []
+  hessian_threshold: 500.0
+  load_selection: true
+  match_distance_threshold: 48.95100000000001
+  norm_type: 4
+  num_octave_layers: 3
+  num_octaves: 4
+  object_name: ros_book
+  ransac_reproj_threshold: 4.9750000000000005
+  save_selection: false
+  upright: false
+state: []

@@ -1,0 +1,11 @@
+<launch>
+      <include file="$(find turtlebot_stage)/launch/turtlebot_in_stage.launch">
+	      <arg name="map_file"
+		      value="$(find whs_navigation)/maps/room_09_26_15_56.yaml"/>
+	      <arg name="world_file"
+		      value="$(find whs_navigation)/maps/stage/room_09_26_15_56.world"/>
+	      <arg name="initial_pose_x" value="5.0"/>
+	      <arg name="initial_pose_y" value="10.0"/>
+	      <arg name="initial_pose_a" value="0.0"/>
+      </include>
+</launch>

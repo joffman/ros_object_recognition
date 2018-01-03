@@ -1,0 +1,44 @@
+<launch>
+	<arg name="objects_topic" default="detected_objects_2d"/>
+	<node name="hsv_filter"
+		type="hsv_filter_node"
+		pkg="object_detection_2d_nodes">
+		<remap from="input_image" to="camera/rgb/image_raw"/>
+		<remap from="output_image" to="hsv_filtered_image"/>
+	</node>
+	<node name="dynparam_hsv"
+		pkg="dynamic_reconfigure"
+		type="dynparam"
+		args="load /hsv_filter $(find hsv_filter)/params/pink_pad.yaml"
+		/>
+	<node name="morphology_filter"
+		type="morphology_filter_node"
+		pkg="object_detection_2d_nodes">
+		<remap from="input_image" to="hsv_filtered_image"/>
+		<remap from="output_image" to="morphology_filtered_image"/>
+	</node>
+	<node name="dynparam_morphology"
+		pkg="dynamic_reconfigure"
+		type="dynparam"
+		args="load /morphology_filter $(find morphology_filter)/params/pink_pad.yaml"
+		/>
+	<node name="binary_detector"
+		type="binary_detector_node"
+		pkg="object_detection_2d_nodes">
+		<remap from="input_image" to="morphology_filtered_image"/>
+		<remap from="detected_objects_2d" to="$(arg objects_topic)"/>
+	</node>
+	<node name="dynparam_binary"
+		pkg="dynamic_reconfigure"
+		type="dynparam"
+		args="load /binary_detector $(find binary_detector)/params/pink_pad.yaml"
+		/>
+	<include file="$(find object_painter)/launch/object_painter.launch"/>
+	<node name="rviz"
+		type="rviz"
+		pkg="rviz"
+		args="-d $(find object_detection_2d_nodes)/rviz/hsv_morph_binary_nodes.rviz"/>
+	<node name="rqt_reconfigure"
+		type="rqt_reconfigure"
+		pkg="rqt_reconfigure"/>
+</launch>

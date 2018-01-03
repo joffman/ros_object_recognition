@@ -1,0 +1,21 @@
+<launch>
+	<node name="visualizer"
+		type="visualizer"
+		pkg="object_detection_2d_vis">
+		<remap from="input_image" to="image_with_objects"/>
+	</node>
+	<node name="area_selection"
+		type="area_selection"
+		pkg="object_detection_2d_vis"/>
+	<include file="$(find object_painter)/launch/object_painter.launch"/>
+	<node name="feature_detector"
+		type="feature_detector_node"
+		pkg="object_detection_2d_nodes">
+		<remap from="input_image" to="camera/rgb/image_raw" />
+	</node>
+	<node name="rqt_reconfigure"
+		pkg="rqt_reconfigure"
+		type="rqt_reconfigure"
+		/>
+</launch>
+

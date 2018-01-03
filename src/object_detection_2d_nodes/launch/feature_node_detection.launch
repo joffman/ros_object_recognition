@@ -1,0 +1,16 @@
+<launch>
+	<arg name="objects_topic" default="detected_objects_2d"/>
+	<node name="dynamic_reconfigure_load"
+		type="dynparam"
+		pkg="dynamic_reconfigure"
+		args="load /feature_detector $(find object_detection_2d_nodes)/params/feature_ros_book_dynparam.yaml"
+		/>
+	<node name="feature_detector"
+		type="feature_detector_node"
+		pkg="object_detection_2d_nodes">
+		<remap from="input_image" to="camera/rgb/image_raw"/>
+		<remap from="detected_objects_2d" to="$(arg objects_topic)"/>
+	</node>
+	<include file="$(find object_painter)/launch/object_painter.launch"/>
+</launch>
+

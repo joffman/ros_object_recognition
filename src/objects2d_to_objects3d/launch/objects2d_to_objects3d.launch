@@ -1,0 +1,11 @@
+<launch>
+	<arg name="node_name" default="objects2d_to_objects3d"/>
+	<arg name="objects2d_topic" default="detected_objects_2d"/>
+	<arg name="objects3d_topic" default="converted_objects_3d"/>
+	<node name="$(arg node_name)"
+		type="objects2d_to_objects3d"
+		pkg="objects2d_to_objects3d">
+		<remap from="input_2d_objects" to="$(arg objects2d_topic)"/>
+		<remap from="output_3d_objects" to="$(arg objects3d_topic)"/>
+	</node>
+</launch>

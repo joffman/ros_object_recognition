@@ -1,0 +1,24 @@
+<launch>
+	<node name="distance_filter"
+		type="distance_filter_node"
+		pkg="object_detection_3d_nodes"
+		output="screen">
+		<remap from="input_points" to="camera/depth/points"/>
+		<remap from="output_points" to="filtered_points"/>
+	</node>
+	<node name="shape_detector"
+		type="shape_detector_node"
+		pkg="object_detection_3d_nodes"
+		output="screen">
+		<remap from="input_points" to="filtered_points"/>
+		<remap from="detected_objects_3d" to="detected_objects_3d"/>
+	</node>
+	<include file="$(find objects_to_markers)/launch/objects_to_markers.launch"/>
+	<node name="rviz"
+		type="rviz"
+		pkg="rviz"
+		args="-d $(find object_detection_3d_nodes)/rviz/distance_shape_nodes.rviz"/>
+	<node name="rqt_reconfigure"
+		type="rqt_reconfigure"
+		pkg="rqt_reconfigure"/>
+</launch>

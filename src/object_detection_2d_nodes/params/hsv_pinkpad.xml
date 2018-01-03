@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<HSVFilter-h_min>136</HSVFilter-h_min>
+<HSVFilter-h_max>179</HSVFilter-h_max>
+<HSVFilter-s_min>139</HSVFilter-s_min>
+<HSVFilter-s_max>255</HSVFilter-s_max>
+<HSVFilter-v_min>27</HSVFilter-v_min>
+<HSVFilter-v_max>255</HSVFilter-v_max>
+<MorphologyFilter-operation>2</MorphologyFilter-operation>
+<MorphologyFilter-num_iterations>1</MorphologyFilter-num_iterations>
+<BinaryDetector-min_length_frac>2.8054000000000001e-01</BinaryDetector-min_length_frac>
+<BinaryDetector-max_length_frac>2.4878549999999997e+00</BinaryDetector-max_length_frac>
+</opencv_storage>

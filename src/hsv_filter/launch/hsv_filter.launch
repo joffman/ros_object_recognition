@@ -1,0 +1,8 @@
+<launch>
+	<node name="hsv_filter"
+		type="hsv_filter"
+		pkg="hsv_filter">
+		<remap from="input_image" to="camera/rgb/image_raw"/>
+		<remap from="filtered_image" to="hsv_filtered_image"/>
+	</node>
+</launch>

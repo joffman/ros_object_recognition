@@ -1,0 +1,8 @@
+<launch>
+	<node name="hsv_detection"
+		type="hsv_detection"
+		pkg="object_detection_2d_nodes"
+		args="$(find object_detection_2d_nodes)/params/hsv_pinkpad.xml">
+		<remap from="input_image" to="camera/rgb/image_raw"/>
+	</node>
+</launch>

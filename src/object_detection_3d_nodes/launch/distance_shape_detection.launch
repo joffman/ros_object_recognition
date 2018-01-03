@@ -1,0 +1,9 @@
+<launch>
+	<include file="$(find astra_launch)/launch/astra.launch"/>
+	<node name="distance_shape_definition"
+		pkg="object_detection_3d_nodes"
+		type="distance_shape_definition"
+		output="screen">
+		<remap from="input_points" to="camera/depth/points"/>
+	</node>
+</launch>

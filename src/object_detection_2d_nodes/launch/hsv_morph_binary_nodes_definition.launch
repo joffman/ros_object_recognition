@@ -1,0 +1,27 @@
+<launch>
+	<node name="hsv_filter"
+		type="hsv_filter_node"
+		pkg="object_detection_2d_nodes">
+		<remap from="input_image" to="camera/rgb/image_raw"/>
+		<remap from="output_image" to="hsv_filtered_image"/>
+	</node>
+	<node name="morphology_filter"
+		type="morphology_filter_node"
+		pkg="object_detection_2d_nodes">
+		<remap from="input_image" to="hsv_filtered_image"/>
+		<remap from="output_image" to="morphology_filtered_image"/>
+	</node>
+	<node name="binary_detector"
+		type="binary_detector_node"
+		pkg="object_detection_2d_nodes">
+		<remap from="input_image" to="morphology_filtered_image"/>
+	</node>
+	<include file="$(find object_painter)/launch/object_painter.launch"/>
+	<node name="rviz"
+		type="rviz"
+		pkg="rviz"
+		args="-d $(find object_detection_2d_nodes)/rviz/hsv_morph_binary_nodes.rviz"/>
+	<node name="rqt_reconfigure"
+		type="rqt_reconfigure"
+		pkg="rqt_reconfigure"/>
+</launch>

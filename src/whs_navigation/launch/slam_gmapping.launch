@@ -1,0 +1,13 @@
+<launch>
+	<!--	<param name="use_sim_time" value="true"/> -->
+	<node name="slam_gmapping" pkg="gmapping" type="slam_gmapping"
+		output="screen">
+		<param name="angularUpdate" value="0.1"/>
+		<param name="linearUpdate" value="0.1"/>
+		<param name="lskip" value="10"/>
+		<param name="xmax" value="10"/>
+		<param name="xmin" value="-10"/>
+		<param name="ymax" value="10"/>
+		<param name="ymin" value="-10"/>
+	</node>
+</launch>

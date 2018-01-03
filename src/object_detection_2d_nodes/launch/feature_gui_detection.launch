@@ -1,0 +1,14 @@
+<launch>
+	<node name="feature_gui_detection"
+		pkg="object_detection_2d_nodes"
+		type="feature_detection"
+		args="$(find object_detection_2d_nodes)/params/feature_ros_book.xml"
+		output="screen">
+		<remap from="input_image" to="camera/rgb/image_raw"/>
+	</node>
+	<include file="$(find object_painter)/launch/object_painter.launch"/>
+	<node name="rviz"
+		type="rviz"
+		pkg="rviz"
+		args="-d $(find object_detection_2d_nodes)/rviz/feature_detection.rviz"/>
+</launch>

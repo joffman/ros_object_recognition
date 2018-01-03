@@ -1,0 +1,21 @@
+!!python/object/new:dynamic_reconfigure.encoding.Config
+dictitems:
+  groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+    dictitems:
+      groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+        state: []
+      id: 0
+      max_length_fraction: 2.4558999999999997
+      min_length_fraction: 1.0183
+      name: Default
+      object_name: pink_pad
+      parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+        state: []
+      parent: 0
+      state: true
+      type: ''
+    state: []
+  max_length_fraction: 2.4558999999999997
+  min_length_fraction: 1.0183
+  object_name: pink_pad
+state: []

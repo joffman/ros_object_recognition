@@ -1,0 +1,10 @@
+<launch>
+	<arg name="node_name" default="object_painter"/>
+	<arg name="input_objects" default="detected_objects_2d"/>
+	<arg name="output_image" default="image_with_objects"/>
+	<node name="$(arg node_name)" pkg="object_painter" type="object_painter">
+		<remap from="input_image" to="camera/rgb/image_raw"/>
+		<remap from="input_objects" to="$(arg input_objects)"/>
+		<remap from="output_image" to="$(arg output_image)"/>
+	</node>
+</launch>

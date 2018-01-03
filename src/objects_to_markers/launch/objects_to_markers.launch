@@ -1,0 +1,9 @@
+<launch>
+	<node name="objects_to_markers"
+		type="objects_to_markers"
+		pkg="objects_to_markers"
+		output="screen">
+		<remap from="detected_objects_3d" to="detected_objects_3d"/>
+		<remap from="object_markers" to="object_markers"/>
+	</node>
+</launch>

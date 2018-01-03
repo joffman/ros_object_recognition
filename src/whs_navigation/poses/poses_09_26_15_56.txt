@@ -1,0 +1,30 @@
+# Goal poses for patroling my room.
+# These were found by echoing the /amcl_pose topic while simulating the
+# room_09_26_15_56.world in stage.
+
+# About 1 meter in front of the docking station.
+# This is where the robot drives to when its battery-level is low.
+# You can leave the pose empty or remove the line if you don't use
+# auto-docking.
+station_pose: 5.3, 14.5, 0.0, 0.0, 0.0, 0.0, 1.0
+
+# left to door (start)
+5.3753042729, 16.2831177983, 0.0, 0.0, 0.0, -0.386998859175, 0.922080193365
+
+# left middle of long side
+6.47800560798, 13.7880579313, 0.0, 0.0, 0.0, -0.425094086294, 0.90514916881
+
+# first inner corner right
+3.69489859694, 11.5765408001, 0.0, 0.0, 0.0, -0.839870696958, 0.542786525617
+
+# back right
+4.95, 8.62285047502, 0.0, 0.0, 0.0, 0.0938468933811, 0.995586641434
+
+# back left
+8.40286637795, 10.8199828279, 0.0, 0.0, 0.0, 0.828914813474, 0.559374858215
+
+# corner
+5.52678845495, 12.9719204302, 0.0, 0.0, 0.0, 0.736664720368, 0.676258153197
+
+# door
+4.47541742825, 16.1679748826, 0.0, 0.0, 0.0, 0.408006739473, 0.912978915718

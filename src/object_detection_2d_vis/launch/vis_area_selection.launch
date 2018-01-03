@@ -1,0 +1,7 @@
+<launch>
+	<include file="$(find object_detection_2d_vis)/launch/visualizer.launch"/>
+	<node name="area_selection"
+		type="area_selection"
+		pkg="object_detection_2d_vis" />
+</launch>
+

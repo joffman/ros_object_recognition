@@ -1,0 +1,8 @@
+<launch>
+	<node name="shape_detector"
+		type="shape_detector_node"
+		pkg="object_detection_3d_nodes"
+		output="screen">
+		<remap from="input_points" to="camera/depth/points"/>
+	</node>
+</launch>

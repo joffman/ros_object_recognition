@@ -1,0 +1,51 @@
+<!-- Launch the HSV- and the feature-detection systems and convert the
+     detected objects of both systems to corresponding 3D objects. -->
+<!-- This file has been imported from an older version of the workspace and requires
+     some changes (in this file and in the workspace) to run. -->
+<launch>
+	<!-- Start the hsv detection system, convert its detected objects to 3d objects, and
+	     publish the markers that represent these objects. -->
+	<include file="$(find binary_detector)/launch/hsv_morph_binary_detection.launch">
+		<arg name="objects_topic" value="hsv_detected_objects"/>
+	</include>
+	<include file="$(find objects2d_to_objects3d)/launch/objects2d_to_objects3d.launch">
+		<arg name="node_name" value="objects2d_to_objects3d_hsv"/>
+		<arg name="objects2d_topic" value="hsv_detected_objects"/>
+		<arg name="objects3d_topic" value="hsv_objects_3d"/>
+	</include>
+	<node name="objects_to_markers_hsv" pkg="objects_to_markers" type="objects_to_markers">
+		<remap from="detected_objects_3d" to="hsv_objects_3d"/>
+		<remap from="object_markers" to="hsv_markers"/>
+	</node>
+	<include file="$(find object_painter_2d)/launch/object_painter.launch">
+		<arg name="node_name" value="object_painter_hsv"/>
+		<arg name="input_objects" value="hsv_detected_objects"/>
+		<arg name="output_image" value="hsv_objects_image"/>
+	</include>
+
+
+	<!-- Start the feature detection system, convert its detected objects to 3d objects, and
+	     publish the markers that represent these objects. -->
+	<include file="$(find feature_detector)/launch/feature_detector.launch">
+		<arg name="objects_topic" value="feature_detected_objects"/>
+	</include>
+	<include file="$(find objects2d_to_objects3d)/launch/objects2d_to_objects3d.launch">
+		<arg name="node_name" value="objects2d_to_objects3d_feature"/>
+		<arg name="objects2d_topic" value="feature_detected_objects"/>
+		<arg name="objects3d_topic" value="feature_objects_3d"/>
+	</include>
+	<node name="objects_to_markers_feature" pkg="objects_to_markers" type="objects_to_markers">
+		<remap from="detected_objects_3d" to="feature_objects_3d"/>
+		<remap from="object_markers" to="feature_markers"/>
+	</node>
+	<include file="$(find object_painter_2d)/launch/object_painter.launch">
+		<arg name="node_name" value="object_painter_feature"/>
+		<arg name="input_objects" value="feature_detected_objects"/>
+		<arg name="output_image" value="feature_objects_image"/>
+	</include>
+
+	<!-- General stuff. -->
+	<include file="$(find astra_launch)/launch/astra.launch"/>
+	<node name="rviz" pkg="rviz" type="rviz"
+		args="-d /home/janosch/.rviz/objects2d_to_objects3d_test.rviz"/>
+</launch>
