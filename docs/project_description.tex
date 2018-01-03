@@ -1,0 +1,1030 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{listings}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\lstset{
+	xleftmargin=\parindent
+}
+
+\hyphenation{Turtle-Bot}
+
+\title{ROS-Based Object Recognition Framework - Project Description}
+\author{Janosch Hoffmann}
+\date{\today}
+
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+
+\section{Preface}
+
+\subsection{About This Project}
+
+The main purpose of this project is to develop a ROS-based
+framework that facilitates the development of 2D and 3D object
+recognition software.
+The source code mainly comprises ROS nodes and classes that
+belong to that framework.
+
+In addition, a basic navigation program has been written,
+which is described in section~\ref{sec:navi}.
+
+The project was created as part of my master
+thesis at the Westphalian University of Applied Sciences in
+Gelsenkirchen, Germany (https://www.w-hs.de).
+The thesis was supervised by Prof.\ J\"{u}rgen Dunker.
+
+
+
+\subsection{Purpose of This Document}
+This document should enable you to \ldots
+\begin{itemize}
+	\item \ldots create ROS systems that use the modules (nodes and classes)
+		of this project.
+	\item \ldots integrate your own modules into the framework.
+	\item \ldots explore, understand, and modify the source code.
+\end{itemize}
+
+
+\subsection{Contact Me}
+
+I'm happy about anyone who can make use of the code, for whatever purpose.
+If you have any questions or suggestions, feel free to e-mail me
+(janosch.hoffmann@hotmail.de); I will help you as good as I can.
+
+Most of the code and the documentation (including this document)
+are pretty premature.
+I'm willing to improve them, but only if someone (i.e.\ at least one)
+is actually interested in that. Therefore, don't be shy of contacting me.
+
+I think it would be reasonable to use the project as a starting point
+for your own (school) project or just as an idea that could influence
+your project.
+Whatever you do with it, please let me know.
+
+
+\subsection{Setup}
+
+This section describes the hardware and software setup that
+was used during development.
+Regardless of that, adapting the code to other robots,
+cameras, or ROS versions should require only minor changes.
+The object recognition software can also be used without
+any robot.
+
+The software was written for a TurtleBot2 robot with an
+Orbbec Astra camera (https://orbbec3d.com/product-astra).
+I think the \code{objects2d\_to\_objects3d} package is the
+only package that uses this information by having the
+height and the intrinsics of the camera hard-coded into
+it.
+
+The notebook of the TurtleBot was running Ubuntu 16.04 and
+ROS Kinetic.
+
+The libraries that were mainly used are OpenCV 3, PCL 1.7, Qt 5,
+and Eigen.
+In addition, for the navigation program, the Smach
+library/package (wiki.ros.org/smach) was used.
+
+
+\section{Preliminary Considerations}
+
+\subsection{Goals and Ideals}
+
+The goal of this project is to create a ROS-based framework for
+2D and 3D object recognition software.
+Figure~\ref{fig:graph_obj_recogn_sys} illustrates how an object recognition
+system that uses this framework should look like.
+\begin{figure}
+	\centering
+	\includegraphics[height=7cm]{images/modular_framework_graph.png}
+	\caption{Graph of a modular object recognition system}
+	\label{fig:graph_obj_recogn_sys}
+\end{figure}
+The system is composed of modules, each depicted as an ellipse.
+It's useful to group these modules into filters, which preprocess the
+data (images or point clouds), detectors, which detect objects within
+the filtered data, and auxiliary modules, e.g.\ for visualization.
+
+All filters should have the same interface, i.e.\ the same inputs and outputs;
+this should also be the case for all detectors.
+This makes these modules interchangeable
+and enables the development of modules that rely on that common
+interface.
+
+It should be easy to create new filters and detectors. Developers should
+be able to concentrate on the main algorithm; auxiliary functionality
+should be provided by general-purpose modules.
+The development of one module should not require to modify existing modules.
+
+It should also be easy to create systems from existing modules.
+Ideally, the user can choose from a pool of existing modules and combine
+those that best suit his particular problem.
+
+
+\subsection{Parametrization}
+\label{sec:parametrization}
+
+Each detector, or more generally each system, offers some criterion
+for detecting objects.
+One system might use the color of objects, another their shapes.
+Each system should provide parameters that allow the user to
+configure the system for the detection of specific objects, e.g.\ objects
+with a specific color or with a specific shape.
+After setting the parameters of a system to the desired values,
+it has to be possible to store their values into one
+or more files. 
+It should be possible to pass such files to a system at start-up.
+
+In summary, each system should provide facilities for the following tasks:
+\begin{itemize}
+	\item Monitoring and setting the parameters of the system.
+	\item Providing feedback by visualizing the results of parameter changes.
+	\item Creating parameter files.
+	\item Passing handles to parameter files to the system at start-up.
+\end{itemize}
+
+
+\subsection{2D and 3D Systems}
+
+We call object recognition systems that operate on images
+`2D systems' and those that operate on point clouds `3D systems'.
+Most modules can only be used in one of the two groups, since
+they work on data types that are specific to that group.
+As an example, 2D filters work on images, 3D filters on point clouds.
+
+
+\subsection{Message Types for Detected Objects}
+\label{sec:msg_types}
+
+To be able to process detected objects independently of the detector that
+detected them, a common message type for detected objects was defined.
+More precisely, two message types were defined, one for 2D object recognition
+and one for 3D object recognition.
+These types contain a header and an array of detected objects. The description
+of each object comprises an identifier (name) and a description of the
+object's location within the data (image or point cloud).
+
+The message type for 2D systems is listed in listing~\ref{lst:2d_msg}.
+The location of the object within the image that contains it is represented
+by a polygon. The x- and y-coordinates of the polygon are given in
+the coordinate frame of the image; the z-coordinate is not used.
+\begin{lstlisting}[language=bash,
+caption={The \code{DetectedObject2DArray} message type},
+label=lst:2d_msg]
+$ rosmsg show \
+> object_detection_2d_msgs/DetectedObject2DArray
+std_msgs/Header header
+  uint32 seq
+  time stamp
+  string frame_id
+object_detection_2d_msgs/DetectedObject2D[] objects
+  string name
+  geometry_msgs/Polygon polygon
+    geometry_msgs/Point32[] points
+      float32 x
+      float32 y
+      float32 z
+\end{lstlisting}	%stopzone
+
+The message type for 3D systems is listed in listing~\ref{lst:3d_msg}.
+In this message type, the location of each object is represented by
+a rectangular prism, which is described by the pose of its center
+and by its dimensions, i.e.\ its width, height, and depth.
+\begin{lstlisting}[language=bash,
+caption={The \code{DetectedObject3DArray} message type},
+label=lst:3d_msg]
+$ rosmsg show \
+> object_detection_3d_msgs/DetectedObject3DArray
+std_msgs/Header header
+  uint32 seq
+  time stamp
+  string frame_id
+object_detection_3d_msgs/DetectedObject3D[] objects
+  string name
+  object_detection_3d_msgs/OrientedBox box
+    geometry_msgs/Pose pose
+      geometry_msgs/Point position
+        float64 x
+        float64 y
+        float64 z
+      geometry_msgs/Quaternion orientation
+        float64 x
+        float64 y
+        float64 z
+        float64 w
+    float64 width
+    float64 height
+    float64 depth
+\end{lstlisting}	%stopzone
+
+
+\section{Example Systems}
+
+During the development of the framework,
+three specific object recognition systems were taken as examples.
+They represent use cases for the integration of systems into the framework,
+and their integration reveals major demands on the framework.
+The first two systems operate on color images
+and mainly use facilities of the OpenCV library.
+The last system operates on point clouds and mainly uses facilities
+of the PCL library.
+
+Feel free to add your own systems or modules.
+This will enhance the usability of the framework.
+
+
+\subsection{HSV Detection}
+\label{sec:hsv_det}
+The HSV detection system detects objects with noticeable colors.
+
+Each image is first transformed into HSV color space,
+meaning that the red, green, and blue values of each pixel are transformed into a
+corresponding set of hue, saturation, and value values.
+This is done with the \code{cv::cvtColor} function.
+
+Then the image is filtered using the \code{cv::inRange} function,
+which takes a lower and an upper limit for each channel of the image as its arguments.
+These limits are parameters of the system and are called \code{h\_min}, \code{h\_max},
+\code{s\_min}, \code{s\_max}, \code{v\_min}, and \code{v\_max}.
+Only pixels whose hue (\code{H}), saturation (\code{S}), and value (\code{V}) values
+fulfill the following conditions pass through the filter:
+\begin{lstlisting}
+h_min <= H <= h_max
+s_min <= S <= s_max
+v_min <= V <= v_max
+\end{lstlisting}
+The result is a one channel image that contains the value 255
+where these conditions are fulfilled
+and zero where they are not.
+As an example, figure~\ref{fig:hsv_filtering} shows an image on the left
+and the result of applying the filter to it on the right.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/hsv_filtering.png}
+	\caption{Image before (left) and after (right) applying the \code{cv::inRange} function to it}
+	\label{fig:hsv_filtering}
+\end{figure}
+This filtering in HSV space is done by a module that we call HSV-filter.
+
+Carefully inspecting the figure reveals that the result of the filter is not perfect,
+and adjusting the parameters reveals
+that it is hard to make the result much better under varying lightning conditions.
+To remove the white speckle noise in the image,
+a morphological transformation is applied to it.
+Another module, called morphology-filter, was created for this job.
+It uses the \code{cv::morphologyEx} function to do this.
+Parameters of this function, which are also parameters of the morphology-filter module
+(and therefore of the object recognition system),
+are the kind of operation (erode, dilate, open, etc.)\ and the number of iterations.
+
+The detection of objects in the filtered images is done by the binary-detector
+module.
+The external contours of the detected objects,
+i.e.\ of the contiguous areas of pixels with non-zero values,
+are computed with the \code{cv::findContours} function.
+Contours whose length does not lie within specific limits,
+which are parameters of the binary-detector,
+are filtered out.
+Lastly, the number of vertices is reduced by applying the
+\code{cv::convexHull} function to each contour.
+
+Figure~\ref{fig:hsv_morph_bin} shows a complete example.
+\begin{figure}
+	\centering
+	\includegraphics[height=10cm]{images/hsv_detection.png}
+	\caption{Top: Original image with detected objects.
+	Bottom left: Result of applying thresholds to the image in HSV color space.
+	Bottom right: Result of additional opening transformation.}
+	\label{fig:hsv_morph_bin}
+\end{figure}
+
+
+
+\subsection{Feature Detection}
+\label{sec:feature_det}
+
+The feature detection system detects objects based on keypoints and descriptors.
+A \emph{keypoint} is a small patch of an image that is rich in local information.
+A \emph{descriptor} contains the descriptive information about a keypoint and can be used
+to determine whether two keypoints are ``the same''.
+One major motivation for computing keypoints and descriptors is to represent an object in an
+invariant form that will be similar in similar views of the
+object.
+
+In OpenCV, keypoints are represented by instances of the \code{cv::KeyPoint}
+class.
+Different methods for computing keypoints and descriptors exist;
+the method that is used in this project is called SURF (Speeded-Up Robust Features).
+There are also different methods for matching two sets of descriptors;
+``brute force matching'' is used in this project.
+
+Before the program can detect an object, the user has to select an area within an image.
+This area should contain many noticeable keypoints that belong
+to the object that the system should recognize.
+For simplicity of implementation, it is assumed that the area is rectangular.
+When a rectangular area is selected, the coordinates of the rectangle are saved,
+and the keypoints and descriptors within that area are computed.
+Since it is assumed that the area contains the object that should be recognized,
+we call them target keypoints and target descriptors.
+After that, the descriptor matcher is trained with the target descriptors.
+
+As soon as a valid selection has been made,
+the system tries to detect the target in images that it receives from the camera.
+From each image, keypoints and descriptors are computed;
+we call them query keypoints and query descriptors.
+Then the system computes matches between the query descriptors and the target descriptors.
+If enough matches have been found,
+the system assumes that the target is present in the newly received image
+and computes the homography that transforms the points of the target keypoints
+into the points of the matched query keypoints;
+this is done with the \code{cv::findHomography} function.
+Then the polygon that represents the detected object is computed
+by transforming the rectangle of the user selection using the homography.
+
+Figure~\ref{fig:feature_det} shows an example.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/feature_detection.png}
+	\caption{The green rectangle represents the target-selection; the blue polygon
+	represents the detected object. Keypoints are drawn as little circles, matches
+	as connecting lines between keypoints.}
+	\label{fig:feature_det}
+\end{figure}
+The most recently received image is rendered on the left;
+the image from which the target has been selected is rendered on the right.
+The rectangle that the user created with his mouse to select the target is
+green.
+Keypoints are drawn as little circles.
+If a keypoint within the target-selection (in the right image)
+is recognized in the left image, the two keypoints are connected by a line.
+If an object has been detected, its polygon is drawn in blue color into the left image;
+this polygon is computed by transforming the green, selected rectangle
+that is shown in the right image.
+Note that figure~\ref{fig:feature_det} was not created with any of the programs
+that you find in the source code.
+
+
+\subsection{Shape Detection}
+\label{sec:shape_det}
+
+The shape detection system detects cylindrical or spherical objects.
+
+RANSAC (random sample consensus) is used as a method for estimating parameters
+of a mathematical model from a set of data points that contains outliers (see
+Wikipedia for details).
+With regard to this project, the data points are the points of a point cloud,
+and the mathematical model describes a sphere or a cylinder,
+depending on the shape that the user selects; the shape is a parameter of the system.
+The RANSAC method is implemented by the \code{pcl::SACSegmentation} class.
+
+To reduce the computing time, each point cloud is filtered first, which is done by the
+distance-filter module.
+All points whose distance from the camera does not lie in a range that is specified by the
+parameters of the module are filtered out.
+
+The detection is done by the shape-detector module.
+First it computes the normals of the filtered point cloud using the
+\code{pcl::NormalEstimation} class.
+Then a \code{pcl::SACSegmentation} object is created and a set of arguments is passed to it;
+among them are the shape that is segmented
+and the lower and upper limits for the radius of the segmented shape.
+These arguments are also parameters of the shape-detector module.
+Given the point cloud and the computed normals,
+this object segments the cloud and returns the indices of the inlier points
+and the coefficients of the model.
+If any inliers have been found, the object is computed from the given values.
+
+
+%As described in section~\ref{sec:msg_types},
+%the location of each detected object is represented by the pose of its center
+%and by its width, depth, and height.
+%The computation of these values depends on the selected shape.
+%
+%For a sphere, the model coefficients that are returned by the segmentation
+%function completely describe the sphere.
+%They include its radius and the coordinates of its center
+%so that it is trivial to determine the rectangular prism that represents the object.
+%
+%For a cylinder, the model coefficients only contain the radius of the cylinder and its axis,
+%given by the direction of the axis and \emph{any} point on the axis.
+%What is missing to fully describe a cylinder with finite length in three-dimensional space are
+%the center and the height of the cylinder.
+%The center of the cylinder is approximated by projecting the centroid of the inlier points
+%onto the cylinder axis.
+%The height of the cylinder is approximated by the maximum distance between two inlier points
+%after projecting all inliers onto the cylinder axis.
+
+As an example, Figure~\ref{fig:shape_detection} shows the detection of a
+cylindrical garbage can that is placed on the seat of an office chair.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/shape_detection.png}
+	\caption{Detection of a cylindrical garbage can on an office chair}
+	\label{fig:shape_detection}
+\end{figure}
+The original point cloud is rendered in white, the filtered point cloud in red.
+The box that represents the detected object is rendered as a green, transparent box.
+
+
+
+\section{Architecture and Design}
+\label{sec:design}
+
+This section describes the main design decisions that were made
+during development.
+The basic ideas behind each decision are outlined without
+going into the details.
+
+
+\subsection{Filters and Detectors}
+
+\code{Filter} and \code{Detector} are abstract base classes for all filters
+and detectors.
+\code{Filter} provides the pure virtual (i.e.\ abstract) member function \code{filter},
+\code{Detector} provides the pure virtual member function \code{detect}.
+
+Since we distinguish 2D and 3D systems, there are actually different
+classes for both cases.
+For 2D systems, the \code{object\_detection\_2d::Filter} and
+\code{object\_detection\_2d::Detector} classes are used.
+For 3D systems, the \code{object\_detection\_3d::Filter} and
+\code{object\_detection\_3d::Detector} classes are used.
+
+These abstract classes are defined in the \code{object\_detection\_2d} and
+\code{object\_detection\_3d} packages.
+
+
+\subsection{How Nodes Constitute Object Recognition Systems}
+\label{sec:nodes}
+
+There are currently two ways for using filters and detectors in object
+recognition systems.
+The approach that is described first was also developed first.
+Currently I prefer the second approach because it is simpler and more flexible.
+
+
+\subsubsection{Modules as Objects}
+\label{sec:modules_as_obj}
+The first approach combines the most important modules of the system
+in a single ROS node.
+Two of these nodes exist for every object recognition system, one for creating
+parameter files and one for detecting and publishing objects
+based on such a file.
+Each module is represented by an object and the objects communicate with each
+other by keeping references to each other.
+
+For the node that is used to create parameter files, the classes that process
+the incoming ROS messages are shown in figure~\ref{fig:classes_obj_def}.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/object_definition.png}
+	\caption{The \code{DefinitionDirector} object receives incoming ROS messages
+	and passes data to the gui, filters, and detector of the system
+	(diagram created with Dia)}
+	\label{fig:classes_obj_def}
+\end{figure}
+A \code{DefinitionDirector} object handles the ROS communication and directs
+the components of the system that do the actual work.
+To this end, it has references to these components,
+namely to a \code{GUI} object, to zero or more \code{Filter} objects,
+and to a \code{Detector} object.
+To receive ROS messages, it has a \code{ros::NodeHandle} and a \code{ros::Subscriber} as data members.
+The messages that it receives contain images for 2D detection and point clouds for 3D detection.
+Since figure~\ref{fig:classes_obj_def} tries to capture the correlations of
+2D and 3D systems, it calls instances of these data types collectively \code{data}.
+
+The \code{GUI} is a Qt-based GUI that contains a widget
+for rendering images or point clouds and detected objects, and it provides methods for doing so.
+It also contains widgets for setting the parameters of the object recognition system.
+\code{Filter} and \code{Detector} are abstract classes that provide pure virtual functions for
+filtering data and detecting objects, respectively.
+The most important member function of the \code{DefinitionDirector} is the callback function
+\code{messageCallback}, which handles incoming data;
+this function is called \code{imageCallback} for 2D and \code{cloudCallback} for 3D
+object recognition.
+Within this method, data is first extracted from the received ROS message.
+Then it is filtered by all registered filters.
+The filtered data is rendered in the GUI and passed to the detector's \code{detect} method.
+If any objects are detected, they are rendered by the GUI as well.
+
+In the node that publishes objects that are detected based on an existing parameter file,
+no GUI is used and the instance of the \code{DefinitionDirector} class is replaced by an instance of
+the \code{DetectionDirector} class.
+The only differences between both classes are that the latter has no reference to a GUI,
+has a \code{ros::Publisher} as a data member,
+and publishes detected objects instead of visualizing them.
+
+
+A system is created by writing these two nodes.
+In each node, the appropriate classes are instantiated and the
+objects are connected according to figure~\ref{fig:classes_obj_def}.
+
+
+
+Figure~\ref{fig:node_with_objects} presents a simplified visualization
+of the running system.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/node_with_objects.png}
+	\caption{Node for publishing detected objects. Modules are instances of
+	classes and are depicted as dashed ellipses.}
+	\label{fig:node_with_objects}
+\end{figure}
+The system is represented by a single ROS node that subscribes to images
+and publishes detected objects.
+The objects are detected according to a parameter file that has been passed
+to the node at start-up.
+Internally, the node is seperated into modules, which are instances of classes
+and depicted as dashed ellipses.
+
+
+\subsubsection{Modules as Nodes}
+\label{sec:modules_as_nodes}
+The second approach implements modules as nodes.
+
+Let's use the \code{hsv\_filter::HSVFilter} class from the \code{hsv\_filter} package
+as an example.
+An object of this class inherits from the \code{Filter} class
+and overrides the \code{filter} method.
+This method takes an image (object of the \code{cv::Mat} class) and
+returns a new \code{cv::Mat} object that contains the filtered
+image.
+``Using this object as a node'' means that a ROS node is created which
+has a similar function as the object;
+it subscribes to images and publishes new, filtered images.
+To this end, 2 (or rather 4; 2 for 2D systems and 2 for 3D systems)
+wrapper classes were created, \code{ROSFilterWrapper} and
+\code{ROSDetectorWrapper}.
+An object of the \code{ROSFilterWrapper} class
+has a reference to a \code{Filter} object.
+For 2D systems, it subscribes to images over the ROS network,
+converts these images to \code{cv::Mat} objects, passes these \code{cv::Mat}s
+to the \code{Filter}'s \code{filter} method, converts the return value back
+to the ROS image message type, and publishes the result over the ROS network.
+The \code{ROSDetectorWrapper} class behaves similarly, but its results are
+detected objects.
+
+Figure~\ref{fig:modules_as_nodes} shows a general example of an object
+recognition system.
+\begin{figure}
+	\centering
+	\includegraphics[height=10cm]{images/modules_as_nodes.png}
+	\caption{The ROS nodes represent modules of the framework and constitute
+	an object recognition system}
+	\label{fig:modules_as_nodes}
+\end{figure}
+Each module is implemented as a ROS node and the modules communicate with each
+other, mainly using ROS topics.
+Typically needed functionalities, e.g.\ visualization, are encapsulated in
+general-purpose modules. Existing ROS tools (e.g.\ rviz) are used
+wherever possible.
+
+
+\subsection{Parameter Management}
+\label{sec:param_mgmt}
+
+As described in section~\ref{sec:parametrization}, each module
+(especially filters and detectors) provides parameters for
+configuring the module.
+
+To encapsulate the parameter management in each module, a common
+pattern is used.
+The class diagram in figure~\ref{fig:hsv_param_managers} illustrates this.
+% Show HSVFilter with hsv_filter::ParameterManager, ReconfigurePM and
+% ObservedPM.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/hsv_parameter_managers.png}
+	\caption{Parameter-Manager classes in the \code{hsv\_filter} package}
+	\label{fig:hsv_param_managers}
+\end{figure}
+Typically, each filter- and each detector-object has a
+reference to an object of some \code{ParameterManagement} class
+as a data member.
+As an example, an object of the \code{hsv\_filter::HSVFilter} class keeps a
+pointer to an object of the \code{hsv\_filter::ParameterManagement} class.
+Although the ParameterManagement class is not abstract
+(it probably should be; I'm not completely sure about that; see
+section~\ref{sec:todos}), the
+pointer normally points to an instance of some subclass.
+The basic idea is that the \code{ParameterManager} has the parameters
+of the module as data members and provides getter methods for reading
+the values of these parameters.
+These getters are called by the filter or detector.
+How the parameters are set is determined by the subclass in use.
+The subclasses currently used are \code{ReconfigureParameterManager} and
+\code{ObservedParameterManager}; the use of each subclass corresponds
+to one of the two ways for creating systems from existing modules, as described
+in section~\ref{sec:nodes}.
+
+
+\subsubsection{\code{ReconfigureParameterManager}}
+\code{ReconfigureParameterManager} is the subclass that is used
+for systems whose modules are implemented as ROS nodes.
+An object of this class contains a \code{dynamic\_reconfigure}
+server, which defines a set of ROS parameters that correspond to the
+parameters of the module.
+These ROS / \code{dynamic\_reconfigure} parameters can be observed,
+manipulated, saved, and loaded with the existing ROS facilities like
+the \code{dynparam} node (from the \code{dynamic\_reconfigure} package)
+and \code{rqt\_reconfigure}.
+Whenever the value of one of those ROS parameters changes, a callback
+function within the module (node) is invoked, and the values of the
+internal parameters are adjusted so that they match those of the
+corresponding ROS parameters.
+Therefore, the parameters of the module are manipulated by manipulating
+the corresponding ROS parameters.
+Saving/loading the parameters to/from file can be done by using
+the existing \code{dynparam dump} and \code{dynparam load} commands;
+these commands can also be triggered from \code{rqt\_reconfigure}.
+
+
+\subsubsection{\code{ObservedParameterManager}}
+\code{ObservedParameterManager} is the subclass that is used for systems that
+are implemented as single nodes with modules represented by objects, as
+described in section~\ref{sec:modules_as_obj}.
+The classes that are involved in enabling the user to access the parameters of the
+system are shown in figure~\ref{fig:classes_observe_params}.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/observing_setting_params.png}
+	\caption{Classes that enable the user to monitor and set parameters}
+	\label{fig:classes_observe_params}
+\end{figure}
+
+A general \code{GUI} class is defined in the \code{object\_detection\_2d} and
+\code{object\_detection\_3d} packages.
+The GUI of the HSV-detection system is shown in figure~\ref{fig:hsv_gui}.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/hsv_gui.png}
+	\caption{GUI for creating parameter files for the HSV detection system}
+	\label{fig:hsv_gui}
+\end{figure}
+The GUI provides methods for rendering images / point clouds and detected objects
+and a menu bar with entries for creating and loading parameter files (as described later).
+To allow the user to observe and modify the parameters of the specific filters
+and detectors of the system, the GUI provides the \code{addRightWidget} method,
+which adds a widget to the layout on the right of the GUI.
+
+To use a module in this way, you have to create a widget that provides
+access to its parameters.
+As an example, \code{hsv\_filter::GroupBox} is the widget that provides access
+to the parameters of the HSV-filter.
+
+The communication between the widget and the \code{ObservedParameterManager} of
+a module is based on the Model-View-Controller pattern (see Wikipedia for
+a description);
+the \code{ObservedParameterManager} is the model, the widget acts as the
+view and the controller.
+The relationships between the participating classes are depicted in
+figure~\ref{fig:classes_observe_params}.
+Whenever the user changes some value in the widget, the widget sends a request
+to the parameter-manager by calling its setter-methods.
+Whenever a parameter of an \code{ObservedParameterManager} object changes, the
+object calls its \code{notify} method, which calls the \code{update} method
+of its observers (normally there is only one observer).
+The \code{update} method of a widget updates its view with the current values of
+the parameters by calling the getter-methods of the subject.
+According to figure~\ref{fig:classes_observe_params}, the widget and the
+\code{ObservedParameterManager} are
+connected by (1) adding the widget as an observer to the subject and (2)
+passing a reference (pointer) to the \code{ObservedParameterManager} to the
+widget.
+Then the widget is added to the GUI by calling its \code{addRightWidget} method.
+
+
+The classes that participate in saving parameters to a file and loading them
+from such a file are depicted in figure~\ref{fig:classes_saving_loading}.
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{images/saving_loading_params.png}
+	\caption{Classes that are involved in the creation of parameter files}
+	\label{fig:classes_saving_loading}
+\end{figure}
+
+In addition to inheriting from \code{Subject}, each \code{ObservedParameterManager}
+inherits from \code{Parametrizable}.
+The exact mechanisms differ for 2D and 3D systems, but the following general description
+conveys the basic idea.
+\code{Parametrizable} is an abstract class that provides methods for saving/loading
+parameters to/from file (for 2D systems) or for creating descriptions that can be
+written to disk by \code{ParameterStorage} and
+for parsing descriptions that have been read from such a file (for 3D systems).
+The \code{GUI} has a reference to a \code{ParameterStorage} object, which has a
+vector of references to \code{Parametrizable}s.
+When the user clicks on the entry for saving the parameters in the menu bar of the
+GUI, the GUI gets the name of the parameter file from the user and calls the
+\code{saveParameters} method of the \code{ParameterStorage} object.
+In this method, the \code{ParameterStorage} object opens the file with
+the given name and passes a handle to that file (a \code{cv::FileStorage} object)
+to each registered \code{Parametrizable} so that each one can write its parameters
+into the file.
+(In 3D systems, this method collects a
+parameter description from each \code{Parametrizable} and writes the descriptions
+into the parameter file.)
+When the user clicks on the entry for opening a parameter file in the menu bar of the
+GUI, the GUI gets the name of the file from the user and calls the
+\code{loadParameters} method of the \code{ParameterStorage} object.
+In this method, the file is opened for reading and a handle to the file 
+is passed to each registered \code{Parametrizable} so that each one can
+read its parameters from the file.
+(In 3D systems, this method reads the parameter file, creates a parameter-description
+from it, and passes the description to each \code{Parametrizable}.
+Each \code{Parametrizable} then looks for the values of its parameters in the description
+and sets its parameters accordingly.)
+
+
+\section{Navigation}
+
+\label{sec:navi}
+The navigation program resides in the \code{whs\_navigation} package.
+It is based on a state machine and it's meant to be adaptable to
+specific problems.
+Look into part III of my thesis for the description of the navigation node
+and the preliminary process of creating a map of your environment and 
+determining goal-poses.
+The description given there is still up-to-date.
+
+
+\section{Packages}
+
+This section gives a short description of the packages of the \code{tb\_ws}
+workspace, which contains the source code of this project.
+For the C++ code, the facilities (classes, functions, enums, etc.)\
+that are defined in a package normally use the name of the package as a namespace.
+
+\subsection{\code{binary\_detector}}
+This package contains the definition of the \code{BinaryDetector} class
+and the corresponding widget (\code{GroupBox}) and parameter-managers
+(\code{ParameterManager}, \code{ReconfigureParameterManager}, and
+\code{ObservedParameterManager}).
+
+The \code{BinaryDetector} is a 2D-detector that interprets images
+as binary, i.e.\ it converts images to grayscale and only distinguishes between
+pixels with value zero and pixels with non-zero values.
+A contiguous area of non-zero pixels is considered a detected object
+if the length of its contour lies within an adjustable range. The lower and
+upper limits of this range are the parameters of the module.
+
+
+\subsection{\code{distance\_filter}}
+This package contains the definition of the \code{DistanceFilter} class
+and the corresponding widget (\code{GroupBox}) and parameter-managers
+(\code{ParameterManager}, \code{ReconfigureParameterManager}, and
+\code{ObservedParameterManager}).
+
+The \code{DistanceFilter} filters (3D) point clouds.
+It filters out all points whose distance does not lie within an
+adjustable range. The lower and upper limits of this range are
+the parameters of the module.
+
+
+\subsection{\code{feature\_detector}}
+This package contains the definition of the \code{FeatureDetector} class
+and the corresponding widget (\code{GroupBox}, which contains
+\code{DescriptorMatcherGroupBox}, \code{SurfGroupBox}, and
+\code{ThresholdsGroupBox}) and parameter-managers
+(\code{ParameterManager}, \code{ReconfigureParameterManager}, and
+\code{ObservedParameterManager}).
+
+The \code{FeatureDetector} detects objects based on SURF features as
+described in section~\ref{sec:feature_det}.
+
+
+\subsection{\code{hsv\_filter}}
+This package contains the definition of the \code{HSVFilter} class
+and the corresponding widget (\code{GroupBox}) and parameter-managers
+(\code{ParameterManager}, \code{ReconfigureParameterManager}, and
+\code{ObservedParameterManager}).
+
+As described in section~\ref{sec:hsv_det}, the \code{HSVFilter} filters
+images in HSV color space. Only pixels whose H-, S-, and V-values lie
+within adjustable ranges pass through the filter. The limits of these
+ranges are the parameters of the module.
+
+
+\subsection{\code{morphology\_filter}}
+This package contains the definition of the \code{MorphologyFilter} class
+and the corresponding widget (\code{GroupBox}) and parameter-managers
+(\code{ParameterManager}, \code{ReconfigureParameterManager}, and
+\code{ObservedParameterManager}).
+
+As described in section~\ref{sec:hsv_det}, the \code{MorphologyFilter}
+applies morphological transformations on images.
+The parameters of the module are the type of transformation (currently
+this can be `erode', `dilate', `open', or `close') and the number
+of iterations for this transformation.
+
+
+\subsection{\code{object\_detection}}
+This package comprises facilities that are used in 2D and 3D systems.
+Currently, this only includes the Observer and Subject classes, which
+were described in section~\ref{sec:param_mgmt}.
+
+
+\subsection{\code{object\_detection\_2d}}
+
+This package defines the general classes that are used in most
+2D object recognition systems.
+These classes include
+\code{DefinitionDirector}, \code{DetectionDirector},
+\code{Detector}, \code{Filter},
+\code{GUI},
+\code{ParameterStorage}, \code{Parametrizable},
+\code{ROSDetectorWrapper}, and \code{ROSFilterWrapper}.
+
+In addition, it defines some message types that are only used
+in 2D systems.
+
+\subsection{\code{object\_detection\_2d\_msgs}}
+This package defines the \code{DetectedObject2DArray} message
+type that is described in section~\ref{sec:msg_types}.
+
+\subsection{\code{object\_detection\_2d\_nodes}}
+This package contains the nodes that were described in section~\ref{sec:nodes}
+for 2D systems.
+
+There are two groups of nodes in this package.
+The first group comprises nodes that represent modules as described in
+section~\ref{sec:modules_as_nodes}. The corresponding
+source files are \code{hsv\_filter\_node.cpp}, \code{morphology\_filter\_node.cpp},
+\code{binary\_detector\_node.cpp}, and \code{feature\_detector\_node.cpp}.
+In each of these files the corresponding filter or detector object and an
+instance of the \code{ROSFilterWrapper} or \code{ROSDetectorWrapper} classes are
+created and connected.
+The second group comprises nodes that represent complete systems as described in
+section~\ref{sec:modules_as_obj}. These nodes are defined in the files
+\code{hsv\_definition.cpp} (for creating parameter files for the hsv-detection
+system), \code{hsv\_detection.cpp} (for publishing objects with the hsv-detection
+system), \code{feature\_definition.cpp} (for creating parameter files for
+the feature-detection system), and \code{feature\_detection.cpp} (for publishing
+objects with the feature-detection system).
+
+
+
+\subsection{\code{object\_detection\_2d\_vis}}
+This package defines two nodes, \code{visualizer} and \code{area\_selection}.
+The motivation for their creation is the need of the feature-detector node
+(with the source file \code{feature\_detector\_node.cpp} from the
+\code{object\_detection\_2d\_nodes} package)
+to receive target-selections as described in section~\ref{sec:feature_det}.
+
+When \code{rviz} with its existing display for images is used, the user is
+not able to select an area within the image with his mouse.
+The \code{visualizer} node in contrast visualizes images that it receives
+over the ROS network and allows the user to click on the image with his mouse.
+Whenever a mouse event on the displayed image occurs, the \code{visualizer}
+node publishes it using the \code{object\_detection\_2d/MouseEvent} message
+type.
+
+The \code{area\_selection} node subscribes to these mouse events and publishes
+area-selections. An area-selection begins when the user presses the left mouse
+button within the displayed image and is completed when the user releases this
+button. The \code{object\_detection\_2d/Rect2d} message type is used to
+publish area-selections.
+
+Running the \code{visualizer} and \code{area\_selection} nodes allows the
+\code{feature\_detector} node to subscribe and react to area-selections.
+
+
+\subsection{\code{object\_detection\_3d}}
+This package is very similar to \code{object\_detection\_2d} and defines the
+general classes that are used in most 3D object recognition systems.
+
+
+\subsection{\code{object\_detection\_3d\_msgs}}
+This package is very similar to \code{object\_detection\_2d\_msgs};
+it defines the \code{DetectedObject3DArray} message
+type that is described in section~\ref{sec:msg_types}.
+
+
+\subsection{\code{object\_detection\_3d\_nodes}}
+This package is very similar to \code{object\_detection\_2d\_nodes}.
+It contains the nodes that were described in section~\ref{sec:nodes}
+for 3D systems.
+
+Again, there are two groups of nodes in this package.
+The first group comprises nodes that represent modules as described in
+section~\ref{sec:modules_as_nodes}. The corresponding
+source files are \code{distance\_filter\_node.cpp} and
+\code{shape\_detector\_node.cpp}.
+In each of these files the corresponding filter or detector object and an
+instance of the \code{ROSFilterWrapper} or \code{ROSDetectorWrapper} classes are
+created and connected.
+The second group comprises nodes that represent complete systems as described in
+section~\ref{sec:modules_as_obj}.
+The only system is the shape-detection system that is described in
+section~\ref{sec:shape_det}.
+The node defined in \code{distance\_shape\_definition.cpp} is used to create
+parameter files for this system, the node from \code{distance\_shape\_detection.cpp}
+detects objects based on such a file and publishes them.
+
+
+\subsection{\code{object\_painter}}
+
+This package defines the \code{object\_painter} node.
+The purpose of this node is to visualize detected objects in 2D detection systems.
+It subscribes to images and messages of type \code{DetectedObject2DArray},
+it draws the polygons that represent the detected objects into the image, and it
+publishes the resulting image.
+
+\subsection{\code{objects2d\_to\_objects3d}}
+This package defines the \code{objects2d\_to\_objects3d} node.
+This node can be used to transform messages of type \code{DetectedObject2DArray}
+into messages of type \code{DetectedObject3DArray}.
+
+To do this, it uses the intrinsics of the camera and the following assumptions:
+\begin{itemize}
+	\item The detected objects are standing on the floor.
+	\item The camera is attached to the TurtleBot.
+		This means that the optical axis is parallel to the floor and
+		approximately 32 cm high.
+	\item The depth of a detected object is equal to its width.
+\end{itemize}
+
+
+\subsection{\code{objects\_to\_markers}}
+
+This package defines the \code{objects\_to\_markers} node.
+This node subscribes to messages of type
+\code{object\_detection\_3d\_msgs/DetectedObject3DArray} and
+publishes corresponding messages of type
+\code{visualization\_msgs/MarkerArray}, which can be visualized by rviz.
+
+Each marker in a marker-array represents the bounding box of an object.
+This node is used to visualize the locations of detected 3D-objects in rviz.
+
+
+\subsection{\code{shape\_detector}}
+This package contains the definition of the \code{ShapeDetector} class
+and the corresponding widget (\code{GroupBox}, which contains the
+\code{NormalEstimationGroupBox} and the \code{SegmentationGroupBox})
+and parameter-managers
+(\code{ParameterManager}, \code{ReconfigureParameterManager}, and
+\code{ObservedParameterManager}).
+
+As described in section~\ref{sec:shape_det}, the \code{ShapeDetector}
+detects cylinders or spheres in point clouds
+by segmenting the clouds with RANSAC.
+
+
+\subsection{\code{whs\_navigation}}
+This package contains the code that is related to the navigation program
+as described in section~\ref{sec:navi}.
+
+
+\section{TODOs}
+\label{sec:todos}
+
+\begin{itemize}
+	\item The shape-detection system is VERY slow and unreliable (i.e.\
+		has many false positives).
+		Integrating the filters of the following two items should
+		improve the system a lot.
+	\item Creating a voxel grid filter that reduces the density of a
+		point cloud and therefore the number of its points.
+		This filter could be based on the \code{pcl::VoxelGrid}
+		(pointclouds.org/documentation/tutorials/voxel\_grid.php)
+		and would reduce the computing time in 3D detection systems.
+	\item Creating a segmentation filter for 3D systems.
+		Similar to the shape-detector, this filter would be
+		based on the \code{pcl::SACSegmentation} class.
+		The parameters could include the shape (e.g.\ plane or cylinder)
+		and a boolean for determining if the points that belong to the shape
+		or the points that do not belong to it are filtered out.
+		The main use of this filter would probably be to filter out planes
+		(the floor and walls).
+	\item The packages \code{object\_detection\_2d} and \code{object\_detection\_2d\_msgs}
+		both define custom message types.
+		This is confusing; a clear seperation of concerns/responsibilities is missing.
+		It's probably better to put all message type definitions into one of the two
+		packages.
+
+		The same is true for \code{object\_detection\_3d} and
+		\code{object\_detection\_3d\_msgs}, even though the former package
+		doesn't define any message types yet.
+	\item The seperation of concerns for the \code{ParameterManager} class and its
+		subclasses is not clear.
+		\code{ParameterManager} is not abstract and contains the implementation
+		of functionalities that are common among the subclasses.
+		This makes it hard to decide which implementation-details should
+		be part of \code{ParameterManager} and which should be included in the
+		subclasses.
+	\item If possible, creating a plug-in for rviz would probably be better than
+		using our own nodes for visualization
+		(\code{visualizer} and \code{area\_selection} from the
+		\code{object\_detection\_2d\_vis} package).
+\end{itemize}
+
+
+\end{document}

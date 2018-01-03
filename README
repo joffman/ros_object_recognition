@@ -1,0 +1,17 @@
+Summary:
+A simple "framework" for ROS-based 2D and 3D object recognition software.
+
+Documentation:
+You find a description of the project in docs/project_description.pdf.
+docs/thesis.pdf contains a more detailed description, but it's not up-to-date
+anymore.
+
+Requirements:
+ROS
+OpenCV 3 (only for 2D object recognition)
+PCL 1.7  (only for 3D object recognition)
+Eigen 3  (only for 3D object recognition)
+Qt5 (optional)
+
+License:
+MIT license
