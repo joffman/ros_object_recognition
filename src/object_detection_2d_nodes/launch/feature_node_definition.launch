@@ -17,5 +17,6 @@
 		pkg="rqt_reconfigure"
 		type="rqt_reconfigure"
 		/>
+	<include file="$(find astra_launch)/launch/astra.launch"/>
 </launch>
 

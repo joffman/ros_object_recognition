@@ -38,7 +38,5 @@
 		type="rviz"
 		pkg="rviz"
 		args="-d $(find object_detection_2d_nodes)/rviz/hsv_morph_binary_nodes.rviz"/>
-	<node name="rqt_reconfigure"
-		type="rqt_reconfigure"
-		pkg="rqt_reconfigure"/>
+	<include file="$(find astra_launch)/launch/astra.launch"/>
 </launch>

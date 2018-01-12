@@ -6,14 +6,14 @@ dictitems:
         state: []
       id: 0
       name: Default
-      num_iterations: 2
-      operation: 0
+      num_iterations: 1
+      operation: 2
       parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
         state: []
       parent: 0
       state: true
       type: ''
     state: []
-  num_iterations: 2
-  operation: 0
+  num_iterations: 1
+  operation: 2
 state: []

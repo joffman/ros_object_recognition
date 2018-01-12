@@ -4,4 +4,5 @@
 		pkg="object_detection_2d_nodes">
 		<remap from="input_image" to="camera/rgb/image_raw"/>
 	</node>
+	<include file="$(find astra_launch)/launch/astra.launch"/>
 </launch>

@@ -5,23 +5,23 @@ dictitems:
       groups: !!python/object/new:dynamic_reconfigure.encoding.Config
         state: []
       h_max: 179
-      h_min: 142
+      h_min: 122
       id: 0
       name: Default
       parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
         state: []
       parent: 0
-      s_max: 255
-      s_min: 125
+      s_max: 237
+      s_min: 41
       state: true
       type: ''
       v_max: 255
-      v_min: 53
+      v_min: 152
     state: []
   h_max: 179
-  h_min: 142
-  s_max: 255
-  s_min: 125
+  h_min: 122
+  s_max: 237
+  s_min: 41
   v_max: 255
-  v_min: 53
+  v_min: 152
 state: []

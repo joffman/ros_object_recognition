@@ -5,17 +5,17 @@ dictitems:
       groups: !!python/object/new:dynamic_reconfigure.encoding.Config
         state: []
       id: 0
-      max_length_fraction: 2.4558999999999997
-      min_length_fraction: 1.0183
+      max_length_fraction: 2.6355999999999997
+      min_length_fraction: 0.6588999999999999
       name: Default
-      object_name: pink_pad
+      object_name: ''
       parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
         state: []
       parent: 0
       state: true
       type: ''
     state: []
-  max_length_fraction: 2.4558999999999997
-  min_length_fraction: 1.0183
-  object_name: pink_pad
+  max_length_fraction: 2.6355999999999997
+  min_length_fraction: 0.6588999999999999
+  object_name: ''
 state: []

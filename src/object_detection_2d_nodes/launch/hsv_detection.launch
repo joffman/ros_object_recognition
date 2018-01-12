@@ -1,8 +1,8 @@
 <launch>
-	<node name="feature_gui_definition"
+	<node name="hsv_detection"
+		type="hsv_detection"
 		pkg="object_detection_2d_nodes"
-		type="feature_definition"
-		output="screen">
+		args="$(find hsv_filter)/params/book.yml">
 		<remap from="input_image" to="camera/rgb/image_raw"/>
 	</node>
 	<include file="$(find astra_launch)/launch/astra.launch"/>
