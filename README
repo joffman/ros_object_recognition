@@ -13,7 +13,7 @@ ROS
 OpenCV 3 (only for 2D object recognition)
 PCL 1.7  (only for 3D object recognition)
 Eigen 3  (only for 3D object recognition)
-Qt5 (optional)
+Qt5 (optional, if you do not compile the GUI-files)
 
 License:
 MIT license
