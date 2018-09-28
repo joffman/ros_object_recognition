@@ -36,6 +36,14 @@ set(FORM_FILES
 QT5_WRAP_CPP(MOC_SRC_H ${HEADER_FILES})
 QT5_WRAP_UI(MOC_GUI_H ${FORM_FILES})
 
+## VTK.
+## I've added these lines after having received an email from Xu Dong, who had
+## problems compiling the project because of VTK-errors.
+## You might have to alter VTK_DIR depending on your specific build path.
+set(VTK_DIR "/usr/lib/cmake/vtk-6.2")
+find_package(VTK_REQUIRED)
+include(${VTK_USE_FILE})
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ## System dependencies are found with CMake's conventions
@@ -181,6 +189,7 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   Qt5::Widgets
+  ${VTK_LIBRARIES}
 )
 
 #############
