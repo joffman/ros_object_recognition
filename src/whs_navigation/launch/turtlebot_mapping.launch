@@ -1,6 +1,0 @@
-<launch>
-	<include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
-	<include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/>
-	<include file="$(find turtlebot_teleop)/launch/keyboard_teleop.launch"/>
-</launch>
-
