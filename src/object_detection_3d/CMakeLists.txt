@@ -40,8 +40,8 @@ QT5_WRAP_UI(MOC_GUI_H ${FORM_FILES})
 ## I've added these lines after having received an email from Xu Dong, who had
 ## problems compiling the project because of VTK-errors.
 ## You might have to alter VTK_DIR depending on your specific build path.
-set(VTK_DIR "/usr/lib/cmake/vtk-6.2")
-find_package(VTK_REQUIRED)
+#set(VTK_DIR "/usr/lib/cmake/vtk-6.2")
+find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

@@ -7,6 +7,7 @@ add_compile_options(-std=c++11 -g)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+find_package(Boost COMPONENTS system REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   hsv_filter
   morphology_filter
@@ -142,6 +143,7 @@ add_executable(${PROJECT_NAME}_hsv_filter_node
 set_target_properties(${PROJECT_NAME}_hsv_filter_node PROPERTIES OUTPUT_NAME hsv_filter_node PREFIX "")
 target_link_libraries(${PROJECT_NAME}_hsv_filter_node
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -153,6 +155,7 @@ add_executable(${PROJECT_NAME}_hsv_definition
 set_target_properties(${PROJECT_NAME}_hsv_definition PROPERTIES OUTPUT_NAME hsv_definition PREFIX "")
 target_link_libraries(${PROJECT_NAME}_hsv_definition
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 add_executable(${PROJECT_NAME}_hsv_detection
@@ -161,6 +164,7 @@ add_executable(${PROJECT_NAME}_hsv_detection
 set_target_properties(${PROJECT_NAME}_hsv_detection PROPERTIES OUTPUT_NAME hsv_detection PREFIX "")
 target_link_libraries(${PROJECT_NAME}_hsv_detection
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 add_executable(${PROJECT_NAME}_morphology_filter_node
@@ -169,6 +173,7 @@ add_executable(${PROJECT_NAME}_morphology_filter_node
 set_target_properties(${PROJECT_NAME}_morphology_filter_node PROPERTIES OUTPUT_NAME morphology_filter_node PREFIX "")
 target_link_libraries(${PROJECT_NAME}_morphology_filter_node
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 add_executable(${PROJECT_NAME}_binary_detector_node
@@ -177,6 +182,7 @@ add_executable(${PROJECT_NAME}_binary_detector_node
 set_target_properties(${PROJECT_NAME}_binary_detector_node PROPERTIES OUTPUT_NAME binary_detector_node PREFIX "")
 target_link_libraries(${PROJECT_NAME}_binary_detector_node
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 add_executable(${PROJECT_NAME}_feature_detector_node
@@ -185,6 +191,7 @@ add_executable(${PROJECT_NAME}_feature_detector_node
 set_target_properties(${PROJECT_NAME}_feature_detector_node PROPERTIES OUTPUT_NAME feature_detector_node PREFIX "")
 target_link_libraries(${PROJECT_NAME}_feature_detector_node
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 add_executable(${PROJECT_NAME}_feature_definition
@@ -193,6 +200,7 @@ add_executable(${PROJECT_NAME}_feature_definition
 set_target_properties(${PROJECT_NAME}_feature_definition PROPERTIES OUTPUT_NAME feature_definition PREFIX "")
 target_link_libraries(${PROJECT_NAME}_feature_definition
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 add_executable(${PROJECT_NAME}_feature_detection
@@ -201,6 +209,7 @@ add_executable(${PROJECT_NAME}_feature_detection
 set_target_properties(${PROJECT_NAME}_feature_detection PROPERTIES OUTPUT_NAME feature_detection PREFIX "")
 target_link_libraries(${PROJECT_NAME}_feature_detection
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 

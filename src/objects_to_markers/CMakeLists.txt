@@ -7,6 +7,7 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+find_package(Boost COMPONENTS system REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   object_detection_3d_msgs
   roscpp
@@ -156,6 +157,7 @@ target_link_libraries(${PROJECT_NAME}_marker_publisher_test
 )
 target_link_libraries(${PROJECT_NAME}_objects_to_markers
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 #############

@@ -7,6 +7,7 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+find_package(Boost COMPONENTS system REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   dynamic_reconfigure
@@ -153,6 +154,7 @@ add_dependencies(${PROJECT_NAME}_object_painter
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_object_painter
   ${catkin_LIBRARIES}
+  ${Boost_SYSTEM_LIBRARY}
 )
 
 #############
