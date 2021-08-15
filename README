@@ -1,3 +1,12 @@
+!! NOTE !!
+==========
+This project is deprecated.
+I've created this project in 2017 for my master thesis. Since then, no signifiant changes have been made.
+Since I'm not working with ROS anymore, I will probably not be able to answer your questions.
+Feel free to use the code and concepts as building blocks or as an inspiration for your own project.
+Don't expect this project to run by "plug and play" or to even compile with current versions of ROS.
+
+
 Summary
 =======
 A simple "framework" for ROS-based 2D and 3D object recognition software.
